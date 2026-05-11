@@ -19,9 +19,13 @@ type ErrorResponse = {
   };
 };
 
-const toErrorResponse = (
-  error: Pick<FastifyError, 'code' | 'message' | 'validation'>,
-): ErrorResponse => ({
+type PublicError = {
+  code?: string;
+  message: string;
+  validation?: unknown;
+};
+
+const toErrorResponse = (error: PublicError): ErrorResponse => ({
   success: false,
   data: null,
   error: {
@@ -51,15 +55,20 @@ export const buildApp = async () => {
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
 
-    const statusCode = error.statusCode ?? 500;
-    const publicError =
+    const fastifyError = error as FastifyError;
+    const statusCode = fastifyError.statusCode ?? 500;
+    const publicError: PublicError =
       statusCode >= 500
         ? {
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Internal server error',
             validation: undefined,
           }
-        : error;
+        : {
+            code: fastifyError.code,
+            message: fastifyError.message,
+            validation: fastifyError.validation,
+          };
 
     void reply.status(statusCode).send(toErrorResponse(publicError));
   });

@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Source {
+  makerworld
+}
+
+enum IndexStatus {
+  candidate
+  indexed
+  low_quality
+  discarded
+}
+
+model Creator {
+  id          String       @id @default(uuid())
+  source      Source       @default(makerworld)
+  username    String?
+  displayName String?
+  profileUrl  String?
+  avatarUrl   String?
+  fanCount    Int?
+  followCount Int?
+  level       Int?
+  scrapedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  models      MakerModel[]
+
+  @@index([username])
+  @@index([source])
+}
+
+model MakerModel {
+  id              String         @id @default(uuid())
+  source          Source         @default(makerworld)
+  makerWorldId    Int            @unique
+  internalModelId String?
+  title           String
+  slug            String?
+  url             String
+  thumbnailUrl    String?
+  description     String?
+  license         String?
+  category        String?
+  creatorId       String?
+  creator         Creator?       @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  downloadCount   Int            @default(0)
+  likeCount       Int            @default(0)
+  commentCount    Int            @default(0)
+  boostCount      Int            @default(0)
+  qualityScore    Int            @default(0)
+  indexStatus     IndexStatus    @default(candidate)
+  skipReason      String?
+  firstScrapedAt  DateTime?
+  lastScrapedAt   DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  printProfiles   PrintProfile[]
+  tags            ModelTag[]
+
+  @@index([source])
+  @@index([title])
+  @@index([category])
+  @@index([indexStatus])
+  @@index([creatorId])
+}
+
+model PrintProfile {
+  id                   String     @id @default(uuid())
+  source               Source     @default(makerworld)
+  sourceProfileId      Int
+  modelId              String
+  model                MakerModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  title                String?
+  url                  String?
+  printerCompatibility Json?
+  material             String?
+  layerHeightMm        Float?
+  walls                Int?
+  infillPercent        Int?
+  printTimeMinutes     Int?
+  filamentGrams        Float?
+  isEstimate           Boolean    @default(true)
+  scrapedAt            DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([source, sourceProfileId])
+  @@index([modelId])
+  @@index([source])
+  @@index([material])
+}
+
+model Tag {
+  id        String     @id @default(uuid())
+  source    Source     @default(makerworld)
+  name      String
+  slug      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  models    ModelTag[]
+
+  @@unique([source, slug])
+  @@index([name])
+}
+
+model ModelTag {
+  modelId   String
+  tagId     String
+  model     MakerModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  tag       Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@id([modelId, tagId])
+  @@index([tagId])
+}

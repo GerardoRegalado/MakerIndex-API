@@ -9,6 +9,10 @@ Unofficial REST API for public MakerWorld model metadata.
 - `pnpm start`: run the built server.
 - `pnpm test`: run Vitest once.
 - `pnpm test:watch`: run Vitest in watch mode.
+- `pnpm prisma:generate`: generate Prisma Client.
+- `pnpm prisma:migrate`: create and apply a local/dev Prisma migration.
+- `pnpm prisma:studio`: open Prisma Studio.
+- `pnpm prisma:format`: format the Prisma schema.
 
 ## Local development
 
@@ -34,6 +38,33 @@ cp .env.example .env
 
 ```bash
 pnpm dev
+```
+
+## Prisma and Supabase
+
+MakerIndex API uses Prisma with Supabase Postgres.
+
+Required database variables:
+
+```env
+DATABASE_URL=""
+DIRECT_URL=""
+```
+
+- `DATABASE_URL` is used by the app at runtime.
+- `DIRECT_URL` is used by Prisma for migrations when Supabase requires a direct database connection.
+- Do not commit real database credentials or Supabase secrets.
+
+Generate Prisma Client:
+
+```bash
+pnpm prisma:generate
+```
+
+Create the initial local/dev migration after setting real database URLs:
+
+```bash
+pnpm prisma:migrate --name init
 ```
 
 ## Health check
