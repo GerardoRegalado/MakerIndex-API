@@ -13,6 +13,7 @@ Unofficial REST API for public MakerWorld model metadata.
 - `pnpm prisma:migrate`: create and apply a local/dev Prisma migration.
 - `pnpm prisma:studio`: open Prisma Studio.
 - `pnpm prisma:format`: format the Prisma schema.
+- `pnpm prisma:seed`: seed local/dev data through Prisma.
 
 ## Local development
 
@@ -66,6 +67,14 @@ Create the initial local/dev migration after setting real database URLs:
 ```bash
 pnpm prisma:migrate --name init
 ```
+
+Seed development data after migrations are applied:
+
+```bash
+pnpm prisma:seed
+```
+
+The seed data is fictitious development data for testing future API endpoints without scraping. It stores example metadata and example image URLs only; it does not download assets, store images, or download model files.
 
 ## Health check
 
