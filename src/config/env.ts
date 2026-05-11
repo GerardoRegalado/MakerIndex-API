@@ -7,6 +7,7 @@ const envSchema = z.object({
     .enum(['development', 'test', 'production'])
     .default('development'),
   API_VERSION: z.string().default('0.1.0'),
+  API_ROUTE_VERSION: z.string().default('v1'),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
 });

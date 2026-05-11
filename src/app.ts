@@ -30,7 +30,7 @@ const toErrorResponse = (
     details: error.validation ?? null,
   },
   metadata: {
-    apiVersion: `v${env.API_VERSION.split('.')[0] ?? '1'}`,
+    apiVersion: env.API_ROUTE_VERSION,
   },
 });
 
