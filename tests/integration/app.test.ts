@@ -63,6 +63,6 @@ describe('base app routes', () => {
     expect(body.success).toBe(false);
     expect(body.data).toBeNull();
     expect(body.error.code).toBe('NOT_FOUND');
-    expect(body.metadata.apiVersion).toBe('v1');
+    expect(body.metadata.apiVersion).toBe(env.API_ROUTE_VERSION);
   });
 });
