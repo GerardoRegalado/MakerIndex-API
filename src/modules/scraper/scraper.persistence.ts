@@ -87,20 +87,22 @@ const upsertCreator = async (
     return null;
   }
 
-  const existingCreator =
-    creator.username || creator.profileUrl
-      ? await tx.creator.findFirst({
-          where: creator.username
-            ? {
-                source: Source.makerworld,
-                username: creator.username,
-              }
-            : {
-                source: Source.makerworld,
-                profileUrl: creator.profileUrl,
-              },
-        })
-      : null;
+  // Creator persistence needs a stable public identifier to stay idempotent.
+  if (!creator.username && !creator.profileUrl) {
+    return null;
+  }
+
+  const existingCreator = await tx.creator.findFirst({
+    where: creator.username
+      ? {
+          source: Source.makerworld,
+          username: creator.username,
+        }
+      : {
+          source: Source.makerworld,
+          profileUrl: creator.profileUrl,
+        },
+  });
 
   const data = {
     source: Source.makerworld,

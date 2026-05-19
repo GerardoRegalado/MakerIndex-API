@@ -101,7 +101,8 @@ SCRAPER_MIN_DELAY_MS=3000
 
 The real scraper still does not exist, but the internal persistence layer can already save normalized scraped metadata into Prisma models.
 
-- Persistence is idempotent for models, creators, print profiles, tags, and model/tag relations.
+- Persistence is idempotent for models, creators with stable identifiers, print profiles, tags, and model/tag relations.
+- Creators are only persisted when a stable identifier such as `username` or `profileUrl` is available.
 - It stores public metadata only.
 - It does not download model files, STL, 3MF, or images.
 - It does not make HTTP calls or launch Playwright.

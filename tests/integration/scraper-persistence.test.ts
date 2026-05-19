@@ -9,6 +9,7 @@ import type { ScrapedMakerModel } from '../../src/modules/scraper/scraper.types.
 
 const makerWorldId = 880165;
 const nullCreatorMakerWorldId = 880166;
+const unstableCreatorMakerWorldId = 880167;
 const firstScrapedAt = new Date('2026-05-10T00:00:00.000Z');
 const secondScrapedAt = new Date('2026-05-11T00:00:00.000Z');
 
@@ -194,5 +195,42 @@ describe('scraper persistence', () => {
     expect(model.makerWorldId).toBe(nullCreatorMakerWorldId);
     expect(model.creatorId).toBeNull();
     expect(model.creator).toBeNull();
+  });
+
+  it('does not persist creators without a stable identifier', async () => {
+    const input = buildScrapedModel({
+      makerWorldId: unstableCreatorMakerWorldId,
+      internalModelId: 'MW-880167',
+      title: 'Persistence Test Model With Unstable Creator',
+      slug: 'persistence-test-model-with-unstable-creator',
+      url: 'https://makerworld.com/en/models/880167-persistence-test-model-with-unstable-creator',
+      creator: {
+        username: null,
+        displayName: 'Creator Without Stable Identifier',
+        profileUrl: null,
+        avatarUrl: 'https://example.com/no-stable-id.webp',
+      },
+      tags: ['Unstable Creator Test'],
+      printProfiles: [
+        {
+          sourceProfileId: 880617,
+          title: 'Unstable creator profile',
+          isEstimate: true,
+        },
+      ],
+    });
+
+    await persistScrapedMakerModel(input);
+    const model = await persistScrapedMakerModel(input);
+    const creatorCount = await prisma.creator.count({
+      where: {
+        displayName: 'Creator Without Stable Identifier',
+      },
+    });
+
+    expect(model.makerWorldId).toBe(unstableCreatorMakerWorldId);
+    expect(model.creatorId).toBeNull();
+    expect(model.creator).toBeNull();
+    expect(creatorCount).toBe(0);
   });
 });
