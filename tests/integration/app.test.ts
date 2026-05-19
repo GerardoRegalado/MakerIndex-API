@@ -94,6 +94,20 @@ describe('base app routes', () => {
         version: string;
       };
       paths: Record<string, unknown>;
+      components: {
+        schemas: Record<
+          string,
+          {
+            allOf?: Array<{
+              $ref?: string;
+              required?: string[];
+              properties?: Record<string, unknown>;
+            }>;
+            required?: string[];
+            properties?: Record<string, unknown>;
+          }
+        >;
+      };
     }>();
 
     expect(body.openapi).toBe('3.0.3');
@@ -103,5 +117,20 @@ describe('base app routes', () => {
     expect(body.paths['/api/v1/models/search']).toBeTruthy();
     expect(body.paths['/api/v1/models/{makerWorldId}']).toBeTruthy();
     expect(body.paths['/api/v1/models/resolve']).toBeTruthy();
+    expect(body.components.schemas.ModelDetail).toBeTruthy();
+    expect(body.components.schemas.ModelDetail?.required ?? []).not.toContain(
+      'bestProfile',
+    );
+    expect(
+      body.components.schemas.ModelDetail?.allOf?.some(
+        (schema) => schema.$ref === '#/components/schemas/ModelSearchResult',
+      ),
+    ).toBe(false);
+    expect(JSON.stringify(body.components.schemas.ModelDetail)).not.toContain(
+      '"bestProfile"',
+    );
+    expect(JSON.stringify(body.components.schemas.ModelSearchResult)).toContain(
+      '"bestProfile"',
+    );
   });
 });

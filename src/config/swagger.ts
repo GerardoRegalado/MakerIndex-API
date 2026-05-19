@@ -452,7 +452,7 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
               printerCompatibility: { nullable: true, example: ['A1', 'A1 mini', 'P1S'] },
             },
           },
-          ModelSearchResult: {
+          ModelBase: {
             type: 'object',
             required: [
               'source',
@@ -464,7 +464,6 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
               'stats',
               'tags',
               'category',
-              'bestProfile',
             ],
             properties: {
               source: { type: 'string', example: 'makerworld' },
@@ -493,12 +492,23 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
                 example: ['carabiner', 'clip', 'tools', 'utility'],
               },
               category: { type: 'string', nullable: true, example: 'Tools' },
-              bestProfile: { $ref: '#/components/schemas/BestProfile' },
             },
+          },
+          ModelSearchResult: {
+            allOf: [
+              { $ref: '#/components/schemas/ModelBase' },
+              {
+                type: 'object',
+                required: ['bestProfile'],
+                properties: {
+                  bestProfile: { $ref: '#/components/schemas/BestProfile' },
+                },
+              },
+            ],
           },
           ModelDetail: {
             allOf: [
-              { $ref: '#/components/schemas/ModelSearchResult' },
+              { $ref: '#/components/schemas/ModelBase' },
               {
                 type: 'object',
                 required: [
@@ -609,7 +619,7 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
                       model: { $ref: '#/components/schemas/ModelDetail' },
                       selectedProfile: {
                         nullable: true,
-                        $ref: '#/components/schemas/PrintProfile',
+                        allOf: [{ $ref: '#/components/schemas/PrintProfile' }],
                       },
                     },
                   },
