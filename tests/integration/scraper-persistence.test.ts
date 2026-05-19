@@ -1,4 +1,4 @@
-import { Source } from '@prisma/client';
+import { IndexStatus, Source } from '@prisma/client';
 import { afterAll, describe, expect, it } from 'vitest';
 import { prisma } from '../../src/lib/prisma.js';
 import {
@@ -164,6 +164,8 @@ describe('scraper persistence', () => {
     expect(updated.likeCount).toBe(9);
     expect(updated.commentCount).toBe(4);
     expect(updated.boostCount).toBe(2);
+    expect(updated.qualityScore).toBe(101);
+    expect(updated.indexStatus).toBe(IndexStatus.indexed);
     expect(updated.firstScrapedAt?.toISOString()).toBe(
       firstScrapedAt.toISOString(),
     );

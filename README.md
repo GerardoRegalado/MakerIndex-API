@@ -108,6 +108,14 @@ The real scraper still does not exist, but the internal persistence layer can al
 - It does not make HTTP calls or launch Playwright.
 - It only upserts/adds relations; it does not remove old tags or print profiles.
 
+## Quality scoring
+
+MakerIndex uses a simple initial scoring service based on public activity signals and basic metadata. The formula and index status rules may change once real scraping exists and more reliable fields are available.
+
+- `qualityScore` currently weights downloads, likes, comments, boosts, tags, print profiles, thumbnail presence, category, and title.
+- `indexStatus` is determined from basic metadata and public engagement signals.
+- Models without a title are discarded, and models without a thumbnail are treated as low quality.
+
 ## Health checks
 
 `GET /health` validates that the API process is running. It does not touch the database, so it can still return `200` while Supabase/Postgres is paused or unreachable.

@@ -1,5 +1,9 @@
-import { IndexStatus, Prisma, Source } from '@prisma/client';
+import { Prisma, Source } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import {
+  calculateQualityScore,
+  determineIndexStatus,
+} from '../../services/quality-scoring.service.js';
 import type { ScrapedMakerModel, ScrapedPrintProfile } from './scraper.types.js';
 
 const MODEL_INCLUDE = {
@@ -24,14 +28,6 @@ type ScraperTransaction = Omit<
   Prisma.TransactionClient,
   '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
 >;
-
-export const calculateQualityScore = (model: ScrapedMakerModel): number =>
-  (model.downloadCount ?? 0) +
-  (model.likeCount ?? 0) * 2 +
-  (model.commentCount ?? 0) * 3 +
-  (model.boostCount ?? 0) * 5 +
-  model.printProfiles.length * 10 +
-  model.tags.length;
 
 export const normalizeTag = (
   tag: string,
@@ -235,7 +231,7 @@ export const persistScrapedMakerModel = async (
       commentCount: scrapedModel.commentCount ?? 0,
       boostCount: scrapedModel.boostCount ?? 0,
       qualityScore: calculateQualityScore(scrapedModel),
-      indexStatus: IndexStatus.indexed,
+      indexStatus: determineIndexStatus(scrapedModel),
       lastScrapedAt: scrapedModel.scrapedAt,
     };
 
