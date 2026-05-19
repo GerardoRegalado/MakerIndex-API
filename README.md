@@ -76,7 +76,9 @@ pnpm prisma:seed
 
 The seed data is fictitious development data for testing future API endpoints without scraping. It stores example metadata and example image URLs only; it does not download assets, store images, or download model files.
 
-## Health check
+## Health checks
+
+`GET /health` validates that the API process is running. It does not touch the database, so it can still return `200` while Supabase/Postgres is paused or unreachable.
 
 ```bash
 curl http://localhost:3000/health
@@ -93,11 +95,36 @@ Expected shape:
 }
 ```
 
+`GET /api/v1/health/db` validates the database connection with a minimal Prisma query.
+
+```bash
+curl http://localhost:3000/api/v1/health/db
+```
+
+Expected shape when the database is reachable:
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "database": "reachable"
+  },
+  "error": null,
+  "metadata": {
+    "apiVersion": "v1"
+  }
+}
+```
+
+If the database is unavailable, the endpoint returns `503 DATABASE_UNAVAILABLE` without exposing connection strings, database hosts, stack traces, or internal Prisma details.
+
 ## API documentation
 
 Swagger UI documents the current public endpoints:
 
 - `GET /health`
+- `GET /api/v1/health/db`
 - `GET /api/v1/models/search`
 - `GET /api/v1/models/:makerWorldId`
 - `GET /api/v1/models/resolve`

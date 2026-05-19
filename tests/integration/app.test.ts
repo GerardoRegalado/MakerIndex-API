@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../../src/app.js';
 import { env } from '../../src/config/env.js';
+import { prisma } from '../../src/lib/prisma.js';
 
 let app: FastifyInstance | undefined;
 
@@ -13,6 +14,10 @@ const getApp = async () => {
 afterEach(async () => {
   await app?.close();
   app = undefined;
+});
+
+afterAll(async () => {
+  await prisma.$disconnect();
 });
 
 describe('base app routes', () => {
@@ -114,6 +119,7 @@ describe('base app routes', () => {
     expect(body.info.title).toBe('MakerIndex API');
     expect(body.info.version).toBe(env.API_VERSION);
     expect(body.paths['/health']).toBeTruthy();
+    expect(body.paths['/api/v1/health/db']).toBeTruthy();
     expect(body.paths['/api/v1/models/search']).toBeTruthy();
     expect(body.paths['/api/v1/models/{makerWorldId}']).toBeTruthy();
     expect(body.paths['/api/v1/models/resolve']).toBeTruthy();
@@ -132,5 +138,36 @@ describe('base app routes', () => {
     expect(JSON.stringify(body.components.schemas.ModelSearchResult)).toContain(
       '"bestProfile"',
     );
+  });
+
+  it('responds to GET /api/v1/health/db when the database is reachable', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/health/db',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const body = response.json<{
+      success: boolean;
+      data: {
+        status: string;
+        database: string;
+      };
+      error: null;
+      metadata: {
+        apiVersion: string;
+      };
+    }>();
+
+    expect(body.success).toBe(true);
+    expect(body.data).toEqual({
+      status: 'ok',
+      database: 'reachable',
+    });
+    expect(body.error).toBeNull();
+    expect(body.metadata.apiVersion).toBe(env.API_ROUTE_VERSION);
   });
 });

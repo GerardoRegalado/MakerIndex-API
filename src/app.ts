@@ -7,6 +7,7 @@ import Fastify, { type FastifyError } from 'fastify';
 import { env } from './config/env.js';
 import { swaggerOptions, swaggerUiOptions } from './config/swagger.js';
 import { loggerOptions } from './lib/logger.js';
+import { isPrismaConnectionError } from './lib/prisma-errors.js';
 import { registerRoutes } from './routes/index.js';
 
 type ErrorResponse = {
@@ -59,6 +60,17 @@ export const buildApp = async () => {
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
+
+    if (isPrismaConnectionError(error)) {
+      void reply.status(503).send(
+        toErrorResponse({
+          code: 'DATABASE_UNAVAILABLE',
+          message: 'Database is currently unavailable.',
+          validation: undefined,
+        }),
+      );
+      return;
+    }
 
     const fastifyError = error as FastifyError;
     const statusCode = fastifyError.statusCode ?? 500;

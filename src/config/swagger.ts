@@ -85,6 +85,41 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
             },
           },
         },
+        '/api/v1/health/db': {
+          get: {
+            tags: ['Health'],
+            summary: 'Database health check',
+            description:
+              'Runs a minimal Prisma query to verify that the configured database is reachable. This endpoint does not expose connection strings, database hosts, stack traces, or internal Prisma errors.',
+            operationId: 'getDatabaseHealth',
+            responses: {
+              '200': {
+                description: 'Database is reachable.',
+                content: {
+                  'application/json': {
+                    schema: {
+                      $ref: '#/components/schemas/DatabaseHealthResponse',
+                    },
+                    example: {
+                      success: true,
+                      data: {
+                        status: 'ok',
+                        database: 'reachable',
+                      },
+                      error: null,
+                      metadata: {
+                        apiVersion: 'v1',
+                      },
+                    },
+                  },
+                },
+              },
+              '503': {
+                $ref: '#/components/responses/DatabaseUnavailable',
+              },
+            },
+          },
+        },
         '/api/v1/models/search': {
           get: {
             tags: ['Models'],
@@ -350,6 +385,24 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
               },
               version: { type: 'string', example: env.API_VERSION },
             },
+          },
+          DatabaseHealthResponse: {
+            allOf: [
+              { $ref: '#/components/schemas/ApiSuccessResponse' },
+              {
+                type: 'object',
+                properties: {
+                  data: {
+                    type: 'object',
+                    required: ['status', 'database'],
+                    properties: {
+                      status: { type: 'string', example: 'ok' },
+                      database: { type: 'string', example: 'reachable' },
+                    },
+                  },
+                },
+              },
+            ],
           },
           PaginationMetadata: {
             type: 'object',
@@ -737,6 +790,24 @@ export const swaggerOptions: FastifyStaticSwaggerOptions = {
                       normalizedUrl:
                         'https://makerworld.com/en/models/123456-example',
                     },
+                  },
+                  metadata: { apiVersion: 'v1' },
+                },
+              },
+            },
+          },
+          DatabaseUnavailable: {
+            description: 'Database is currently unavailable.',
+            content: {
+              'application/json': {
+                schema: apiErrorResponse,
+                example: {
+                  success: false,
+                  data: null,
+                  error: {
+                    code: 'DATABASE_UNAVAILABLE',
+                    message: 'Database is currently unavailable.',
+                    details: null,
                   },
                   metadata: { apiVersion: 'v1' },
                 },
