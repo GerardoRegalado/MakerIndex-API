@@ -130,6 +130,193 @@ describe('models routes', () => {
     expect(body.error.code).toBe('INVALID_SEARCH_QUERY');
   });
 
+  it('resolves an indexed MakerWorld URL with profileId', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve?url=https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip%23profileId-468516',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const body = response.json<{
+      success: boolean;
+      data: {
+        makerWorldId: number;
+        profileId: number | null;
+        normalizedUrl: string;
+        indexed: boolean;
+        selectedProfile: {
+          sourceProfileId: number;
+          title: string;
+        } | null;
+      };
+      error: null;
+      metadata: {
+        resolve: {
+          profileFound: boolean;
+        };
+      };
+    }>();
+
+    expect(body.success).toBe(true);
+    expect(body.error).toBeNull();
+    expect(body.data.indexed).toBe(true);
+    expect(body.data.makerWorldId).toBe(550165);
+    expect(body.data.profileId).toBe(468516);
+    expect(body.data.normalizedUrl).toBe(
+      'https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip',
+    );
+    expect(body.data.selectedProfile).toMatchObject({
+      sourceProfileId: 468516,
+    });
+    expect(body.metadata.resolve.profileFound).toBe(true);
+  });
+
+  it('resolves an indexed MakerWorld URL without profileId', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve?url=https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const body = response.json<{
+      data: {
+        makerWorldId: number;
+        profileId: number | null;
+        indexed: boolean;
+        selectedProfile: unknown;
+      };
+    }>();
+
+    expect(body.data.indexed).toBe(true);
+    expect(body.data.makerWorldId).toBe(550165);
+    expect(body.data.profileId).toBeNull();
+    expect(body.data.selectedProfile).toBeNull();
+  });
+
+  it('returns 404 MODEL_NOT_INDEXED for a valid non-indexed MakerWorld URL', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve?url=https://makerworld.com/en/models/123456-example',
+    });
+
+    expect(response.statusCode).toBe(404);
+
+    const body = response.json<{
+      success: boolean;
+      data: null;
+      error: {
+        code: string;
+        details: {
+          makerWorldId: number;
+          profileId: number | null;
+          normalizedUrl: string;
+        };
+      };
+    }>();
+
+    expect(body.success).toBe(false);
+    expect(body.data).toBeNull();
+    expect(body.error.code).toBe('MODEL_NOT_INDEXED');
+    expect(body.error.details).toEqual({
+      makerWorldId: 123456,
+      profileId: null,
+      normalizedUrl: 'https://makerworld.com/en/models/123456-example',
+    });
+  });
+
+  it('returns 400 INVALID_MAKERWORLD_URL for resolve without url', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve',
+    });
+
+    expect(response.statusCode).toBe(400);
+
+    const body = response.json<{
+      error: {
+        code: string;
+      };
+    }>();
+
+    expect(body.error.code).toBe('INVALID_MAKERWORLD_URL');
+  });
+
+  it('returns 400 INVALID_MAKERWORLD_URL for resolve with an invalid domain', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve?url=https://example.com/en/models/550165-example',
+    });
+
+    expect(response.statusCode).toBe(400);
+
+    const body = response.json<{
+      error: {
+        code: string;
+      };
+    }>();
+
+    expect(body.error.code).toBe('INVALID_MAKERWORLD_URL');
+  });
+
+  it('resolves an indexed MakerWorld URL with a missing profileId as selectedProfile null', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/api/v1/models/resolve?url=https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip%23profileId-999999',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const body = response.json<{
+      data: {
+        indexed: boolean;
+        selectedProfile: unknown;
+      };
+      metadata: {
+        resolve: {
+          profileFound: boolean;
+        };
+      };
+    }>();
+
+    expect(body.data.indexed).toBe(true);
+    expect(body.data.selectedProfile).toBeNull();
+    expect(body.metadata.resolve.profileFound).toBe(false);
+  });
+
+  it('resolve uses local database results without external fetch dependency', async () => {
+    const server = await getApp();
+    const originalFetch = globalThis.fetch;
+
+    globalThis.fetch = (() => {
+      throw new Error('External HTTP calls are not allowed in model resolve.');
+    }) as typeof fetch;
+
+    try {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/api/v1/models/resolve?url=https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip%23profileId-468516',
+      });
+
+      expect(response.statusCode).toBe(200);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it('responds to GET /api/v1/models/550165', async () => {
     const server = await getApp();
 

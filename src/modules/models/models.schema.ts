@@ -12,9 +12,20 @@ export const searchModelsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(50).default(20),
 });
 
+export const resolveModelQuerySchema = z.object({
+  url: z
+    .string({
+      required_error: 'MakerWorld URL is required.',
+      invalid_type_error: 'MakerWorld URL must be a string.',
+    })
+    .trim()
+    .min(1, 'MakerWorld URL cannot be empty.'),
+});
+
 export const modelParamsSchema = z.object({
   makerWorldId: z.coerce.number().int().positive(),
 });
 
 export type SearchModelsQuery = z.infer<typeof searchModelsQuerySchema>;
+export type ResolveModelQuery = z.infer<typeof resolveModelQuerySchema>;
 export type ModelParams = z.infer<typeof modelParamsSchema>;

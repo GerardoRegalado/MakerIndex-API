@@ -45,6 +45,23 @@ const mapTags = (model: Pick<ModelSearchRecord, 'tags'>) =>
 const mapPrinterCompatibility = (printerCompatibility: unknown) =>
   printerCompatibility ?? null;
 
+export const mapPrintProfile = (
+  profile: ModelDetailRecord['printProfiles'][number],
+) => ({
+  sourceProfileId: profile.sourceProfileId,
+  title: profile.title,
+  url: profile.url,
+  printerCompatibility: mapPrinterCompatibility(profile.printerCompatibility),
+  material: profile.material,
+  layerHeightMm: profile.layerHeightMm,
+  walls: profile.walls,
+  infillPercent: profile.infillPercent,
+  printTimeMinutes: profile.printTimeMinutes,
+  filamentGrams: profile.filamentGrams,
+  isEstimate: profile.isEstimate,
+  scrapedAt: profile.scrapedAt,
+});
+
 export const mapModelSearchResult = (model: ModelSearchRecord) => {
   // For the MVP, the earliest profile is treated as the representative profile.
   const bestProfile = model.printProfiles[0];
@@ -88,20 +105,7 @@ export const mapModelDetail = (model: ModelDetailRecord) => ({
   creator: mapCreator(model.creator),
   stats: mapStats(model),
   tags: mapTags(model),
-  printProfiles: model.printProfiles.map((profile) => ({
-    sourceProfileId: profile.sourceProfileId,
-    title: profile.title,
-    url: profile.url,
-    printerCompatibility: mapPrinterCompatibility(profile.printerCompatibility),
-    material: profile.material,
-    layerHeightMm: profile.layerHeightMm,
-    walls: profile.walls,
-    infillPercent: profile.infillPercent,
-    printTimeMinutes: profile.printTimeMinutes,
-    filamentGrams: profile.filamentGrams,
-    isEstimate: profile.isEstimate,
-    scrapedAt: profile.scrapedAt,
-  })),
+  printProfiles: model.printProfiles.map(mapPrintProfile),
   metadata: {
     indexStatus: model.indexStatus,
     qualityScore: model.qualityScore,

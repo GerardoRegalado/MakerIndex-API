@@ -3,17 +3,95 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from '../../lib/api-response.js';
-import { mapModelDetail, mapModelSearchResult } from './models.mapper.js';
+import { parseMakerWorldUrl } from '../../utils/parse-makerworld-url.js';
+import {
+  mapModelDetail,
+  mapModelSearchResult,
+  mapPrintProfile,
+} from './models.mapper.js';
 import {
   getModelByMakerWorldId,
   searchModels,
 } from './models.service.js';
 import {
   modelParamsSchema,
+  resolveModelQuerySchema,
   searchModelsQuerySchema,
 } from './models.schema.js';
 
 export const modelsRoute: FastifyPluginAsync = async (fastify) => {
+  fastify.get('/models/resolve', async (request, reply) => {
+    const queryResult = resolveModelQuerySchema.safeParse(request.query);
+
+    if (!queryResult.success) {
+      return reply.status(400).send(
+        createErrorResponse(
+          'INVALID_MAKERWORLD_URL',
+          'A valid MakerWorld URL is required.',
+          queryResult.error.flatten(),
+        ),
+      );
+    }
+
+    let parsedUrl: ReturnType<typeof parseMakerWorldUrl>;
+
+    try {
+      parsedUrl = parseMakerWorldUrl(queryResult.data.url);
+    } catch {
+      return reply.status(400).send(
+        createErrorResponse(
+          'INVALID_MAKERWORLD_URL',
+          'A valid MakerWorld URL is required.',
+        ),
+      );
+    }
+
+    const model = await getModelByMakerWorldId(parsedUrl.makerWorldId);
+
+    if (!model) {
+      return reply.status(404).send(
+        createErrorResponse(
+          'MODEL_NOT_INDEXED',
+          'This MakerWorld model has not been indexed yet.',
+          {
+            makerWorldId: parsedUrl.makerWorldId,
+            profileId: parsedUrl.profileId,
+            normalizedUrl: parsedUrl.normalizedUrl,
+          },
+        ),
+      );
+    }
+
+    const selectedProfileRecord =
+      parsedUrl.profileId === null
+        ? null
+        : model.printProfiles.find(
+            (profile) => profile.sourceProfileId === parsedUrl.profileId,
+          ) ?? null;
+    const selectedProfile = selectedProfileRecord
+      ? mapPrintProfile(selectedProfileRecord)
+      : null;
+    const profileFound = selectedProfile !== null;
+
+    return reply.send(
+      createSuccessResponse(
+        {
+          makerWorldId: parsedUrl.makerWorldId,
+          profileId: parsedUrl.profileId,
+          normalizedUrl: parsedUrl.normalizedUrl,
+          indexed: true,
+          model: mapModelDetail(model),
+          selectedProfile,
+        },
+        {
+          resolve: {
+            profileFound,
+          },
+        },
+      ),
+    );
+  });
+
   fastify.get('/models/search', async (request, reply) => {
     const queryResult = searchModelsQuerySchema.safeParse(request.query);
 
