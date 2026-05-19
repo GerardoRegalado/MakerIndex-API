@@ -97,6 +97,16 @@ SCRAPER_MIN_DELAY_MS=3000
 - No images are stored.
 - Future scraping should remain punctual, conservative, rate-limited, and separate from search.
 
+## Scraped metadata persistence
+
+The real scraper still does not exist, but the internal persistence layer can already save normalized scraped metadata into Prisma models.
+
+- Persistence is idempotent for models, creators, print profiles, tags, and model/tag relations.
+- It stores public metadata only.
+- It does not download model files, STL, 3MF, or images.
+- It does not make HTTP calls or launch Playwright.
+- It only upserts/adds relations; it does not remove old tags or print profiles.
+
 ## Health checks
 
 `GET /health` validates that the API process is running. It does not touch the database, so it can still return `200` while Supabase/Postgres is paused or unreachable.
