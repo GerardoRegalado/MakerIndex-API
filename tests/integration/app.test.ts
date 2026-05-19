@@ -65,4 +65,43 @@ describe('base app routes', () => {
     expect(body.error.code).toBe('NOT_FOUND');
     expect(body.metadata.apiVersion).toBe(env.API_ROUTE_VERSION);
   });
+
+  it('serves Swagger UI at GET /docs', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/docs',
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('serves OpenAPI JSON at GET /docs/json', async () => {
+    const server = await getApp();
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/docs/json',
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const body = response.json<{
+      openapi: string;
+      info: {
+        title: string;
+        version: string;
+      };
+      paths: Record<string, unknown>;
+    }>();
+
+    expect(body.openapi).toBe('3.0.3');
+    expect(body.info.title).toBe('MakerIndex API');
+    expect(body.info.version).toBe(env.API_VERSION);
+    expect(body.paths['/health']).toBeTruthy();
+    expect(body.paths['/api/v1/models/search']).toBeTruthy();
+    expect(body.paths['/api/v1/models/{makerWorldId}']).toBeTruthy();
+    expect(body.paths['/api/v1/models/resolve']).toBeTruthy();
+  });
 });

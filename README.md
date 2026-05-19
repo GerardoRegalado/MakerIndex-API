@@ -92,3 +92,30 @@ Expected shape:
   "version": "0.1.0"
 }
 ```
+
+## API documentation
+
+Swagger UI documents the current public endpoints:
+
+- `GET /health`
+- `GET /api/v1/models/search`
+- `GET /api/v1/models/:makerWorldId`
+- `GET /api/v1/models/resolve`
+
+Start the local server and open:
+
+```text
+http://localhost:3000/docs
+```
+
+The OpenAPI JSON is available at:
+
+```text
+http://localhost:3000/docs/json
+```
+
+For `GET /api/v1/models/resolve`, encode `#` as `%23` when passing a MakerWorld profile URL inside the `url` query parameter:
+
+```text
+http://localhost:3000/api/v1/models/resolve?url=https://makerworld.com/en/models/550165-utility-carabiner-secure-versatile-everyday-clip%23profileId-468516
+```

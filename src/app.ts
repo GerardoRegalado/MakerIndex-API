@@ -1,8 +1,11 @@
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import Fastify, { type FastifyError } from 'fastify';
 import { env } from './config/env.js';
+import { swaggerOptions, swaggerUiOptions } from './config/swagger.js';
 import { loggerOptions } from './lib/logger.js';
 import { registerRoutes } from './routes/index.js';
 
@@ -51,6 +54,8 @@ export const buildApp = async () => {
     max: env.RATE_LIMIT_MAX,
     timeWindow: env.RATE_LIMIT_WINDOW,
   });
+  await app.register(swagger, swaggerOptions);
+  await app.register(swaggerUi, swaggerUiOptions);
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
