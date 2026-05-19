@@ -76,6 +76,27 @@ pnpm prisma:seed
 
 The seed data is fictitious development data for testing future API endpoints without scraping. It stores example metadata and example image URLs only; it does not download assets, store images, or download model files.
 
+## Scraper foundation
+
+The MakerWorld scraper is not active yet. This repository currently includes only conservative scraper contracts, types, config, and placeholder errors for a future implementation.
+
+Default scraper configuration:
+
+```env
+SCRAPER_ENABLED=false
+SCRAPER_TIMEOUT_MS=15000
+SCRAPER_MAX_RETRIES=1
+SCRAPER_MIN_DELAY_MS=3000
+```
+
+- `SCRAPER_ENABLED=false` is the default and the current service still refuses to scrape.
+- No real scraping runs in this phase.
+- No Playwright browser is launched.
+- No external HTTP calls are made by the scraper placeholder.
+- No STL, 3MF, model files, or images are downloaded.
+- No images are stored.
+- Future scraping should remain punctual, conservative, rate-limited, and separate from search.
+
 ## Health checks
 
 `GET /health` validates that the API process is running. It does not touch the database, so it can still return `200` while Supabase/Postgres is paused or unreachable.
