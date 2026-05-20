@@ -15,7 +15,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:format": "prisma format",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "scraper:debug": "tsx scripts/scrape-makerworld-model.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -33,6 +34,7 @@
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",
     "pino": "^9.6.0",
+    "playwright": "^1.60.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

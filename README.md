@@ -78,7 +78,7 @@ The seed data is fictitious development data for testing future API endpoints wi
 
 ## Scraper foundation
 
-The MakerWorld scraper is not active yet. This repository currently includes only conservative scraper contracts, types, config, and placeholder errors for a future implementation.
+The MakerWorld scraper is disabled by default and is not connected to public endpoints. The current implementation supports a single model URL/manual debug flow only when `SCRAPER_ENABLED=true`.
 
 Default scraper configuration:
 
@@ -89,13 +89,28 @@ SCRAPER_MAX_RETRIES=1
 SCRAPER_MIN_DELAY_MS=3000
 ```
 
-- `SCRAPER_ENABLED=false` is the default and the current service still refuses to scrape.
-- No real scraping runs in this phase.
-- No Playwright browser is launched.
-- No external HTTP calls are made by the scraper placeholder.
+- `SCRAPER_ENABLED=false` is the default.
+- No scraping runs from public endpoints.
+- With the default disabled config, no external scraper HTTP/browser work is performed.
 - No STL, 3MF, model files, or images are downloaded.
 - No images are stored.
 - Future scraping should remain punctual, conservative, rate-limited, and separate from search.
+
+## Manual scraper debug
+
+Install Chromium for Playwright when you want to run a manual local scrape:
+
+```bash
+pnpm exec playwright install chromium
+```
+
+Run the debug script with the scraper explicitly enabled:
+
+```bash
+SCRAPER_ENABLED=true pnpm scraper:debug "https://makerworld.com/en/models/550165-example"
+```
+
+The debug script prints normalized JSON only. It does not persist to the database, does not download STL/3MF files, does not store images, and is not used by `search`, `resolve`, or any public endpoint.
 
 ## Scraped metadata persistence
 
